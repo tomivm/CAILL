@@ -32,15 +32,19 @@ U8G2_SH1106_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ 5, /* data=*/ 4, /*
 DHT dht(DHTPIN, DHTTYPE);                                                                   //*
 //*********************************************************************************************
   
-  char contador = 0;
-  int contador2 = 0,minuto = 0;
+  char contador = 0; //timer para sensar botones
+  int contador2 = 0; //timer para sensart TEMP y HUMI
+  int minuto = 0;
+  unsigned long tiempo_anterior = 0;
+  int8_t m = 0; //mantenido y mantener pulsado
+  int8_t testear_boton = 0;
   byte mp = 0;
   byte hou = 0, minute = 0, second = 0;
-  int8_t testear_boton = 0;
-  int8_t m = 0; //mantenido y mantener pulsado
-  unsigned long tiempo_anterior = 0;
+  
+  
+  
   char variable_display[32];
-  char reloj = 0;
+  char reloj = 0; //timer para reloj
   char horasdeluzf = 0, minutosdeluzf = 0, horasdeluzv = 0, minutosdeluzv = 0;
   char fov;
   byte horasdeluz,  horasencendido;
@@ -62,8 +66,7 @@ DHT dht(DHTPIN, DHTTYPE);                                                       
   unsigned int offsetEncenderNoche;
   unsigned int offsetApagarNoche;
   unsigned int minutosApagar;
-} bomba1,oxigenador;
-
+} bomba1,oxigenador;  
   
   bool flag = 0;
 
@@ -139,9 +142,8 @@ char ls = 0, li = 0;
     pinMode(Lampara, OUTPUT);
     pinMode(BOMBA, OUTPUT);
     pinMode(Oxigenador, OUTPUT);
-    digitalWrite(Lampara,LOW);
-    digitalWrite(BOMBA,LOW);
-    digitalWrite(Oxigenador,LOW);
+    delay(1000);
+    bomba1.disparosDia=5; //predefinir un valor o cargar junto con el perfil
     u8g2.begin();
     analogWrite(extr,800); // 100
     analogWrite(intr,0);    // 0
@@ -175,6 +177,18 @@ char ls = 0, li = 0;
   
   void loop()
   {    
+    while(true) {
+    digitalWrite(Lampara,LOW);
+    digitalWrite(BOMBA,LOW);
+    digitalWrite(Oxigenador,LOW);
+    Serial.println("si2"); 
+    delay(5000);
+    Serial.println("si3"); 
+    digitalWrite(Lampara,HIGH);
+    digitalWrite(BOMBA,HIGH);
+    digitalWrite(Oxigenador,HIGH);
+    delay(5000);
+    }
     li=0;
     ls=4;
     testear_botones();
@@ -186,25 +200,27 @@ char ls = 0, li = 0;
     }
   
     if (reloj >= 2)
-    {      
-      now = Rtc.GetDateTime();  //get the time from the RTC
+    {          
+      now = Rtc.GetDateTime();  //get the time from the RTC       
       reloj = 0 ;
       char str[15] = "";   //declare a string as an array of chars
+      Serial.println("si2"); 
+      Serial.println(ptrdisplay); 
       switch (ptrdisplay)
-      {     
+      {    
         default :
         {
         ptrdisplay=1;  
         }
         case 1: //temp y h
-        {
+        {              
           u8g2.setFont(u8g2_font_ncenB14_tr);   
           u8g2.clearBuffer();
           sprintf(str, "T= %sº",
             temperature
             );
-          u8g2.drawStr( 5, 16,str);  
-          sprintf(str, "H= %s%",
+          u8g2.drawStr( 5, 16,str);   
+          sprintf(str, "H= %s",
             humidity
             );  
           u8g2.drawStr( 5, 34,str);   
@@ -229,7 +245,7 @@ char ls = 0, li = 0;
               now.Minute(),
               now.Second()  //get second method              
              );           
-          u8g2.drawStr( 20, 10,str);
+          u8g2.drawStr( 20, 25,str);
           sprintf(str, "%02d/%02d/%02d",     //%d allows to print an integer to the string
               now.Day(),
               now.Month(),
@@ -238,11 +254,11 @@ char ls = 0, li = 0;
              );
           diarestar = ConvierteFechaEnNumero( now.Year(),now.Month(),now.Day());
           diastotales = diarestar - iniciodecultivo;   
-          u8g2.drawStr( 10, 30,str); 
+          u8g2.drawStr( 10,40,str); 
           sprintf(str, "%02d dias de cultivo",   //%d allows to print an integer to the string
              diastotales
              );
-          u8g2.drawStr( 10, 45,str);   
+          u8g2.drawStr( 10, 55,str);   
           u8g2.sendBuffer();  
           break; 
         }
@@ -264,8 +280,7 @@ char ls = 0, li = 0;
           u8g2.sendBuffer();  
           break;     
         }
-      }
-         
+      }        
       if (modo == 2) // Floración
       {
         Serial.print("FLORA");
@@ -297,12 +312,13 @@ char ls = 0, li = 0;
         Serial.print("VEGE");
         if (configuradov == 0) //configuracion y calvulos de la etapa vegetativa
         {
-          configurarBomba1();
           EEPROM.get(minutosDeLuzVPos,minutosDeLuz);       
           tempmax = EEPROM.read(tempMaxVPos);//10
           tempmin = EEPROM.read(tempMinVPos);//8
           humedadmax = EEPROM.read(humedadMaxVPos);//14
           humedadmin = EEPROM.read(humedadMinVPos); //12
+          configurarBomba1();
+          Serial.println("si5"); 
           apagaralotrodia = 0;
           minutosApagar = minutosEncendido + minutosDeLuz;
           Serial.println("config" );

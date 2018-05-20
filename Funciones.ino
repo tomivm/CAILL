@@ -10,6 +10,7 @@
   bool confirmacion;
   byte derecha = 0, enter = 0, s = 0, izquierda = 0;
 
+
 #define u8g_logo_width 128
 #define u8g_logo_height 64
 

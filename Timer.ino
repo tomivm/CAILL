@@ -67,11 +67,16 @@ else
 void configurarBomba1(void){ 
    EEPROM.write(disparosDiaB1Pos, bomba1.disparosDia);
    EEPROM.write(tiempoPrendidoDiaB1Pos, bomba1.tiempoPrendidoDia);
+   Serial.println("si4"); 
+  Serial.println(minutosDeLuz);  
+  Serial.println(bomba1.disparosDia);
   bomba1.intervaloDia = minutosDeLuz / bomba1.disparosDia;
+  Serial.println("si5"); 
   int resto;
   resto = minutosEncendido % bomba1.intervaloDia;  // el resto de la division de number 2 sobre number 1
   bomba1.offsetEncenderDia = bomba1.intervaloDia - resto;
   resto = minutosApagar % bomba1.intervaloDia;  // el resto de la division de number 2 sobre number 1
   bomba1.offsetApagarDia = bomba1.intervaloDia - resto;
+  Serial.println("si6"); 
 }
 
